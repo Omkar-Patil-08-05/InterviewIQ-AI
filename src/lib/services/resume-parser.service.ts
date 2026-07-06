@@ -6,11 +6,21 @@ export class ResumeParserService {
    */
   static async parseFile(buffer: Buffer, mimetype: string): Promise<string> {
     if (mimetype === 'application/pdf') {
+      // Polyfill browser APIs required by pdfjs-dist in Node.js (Vercel Serverless)
+      if (typeof globalThis !== 'undefined') {
+        if (!globalThis.DOMMatrix) {
+          (globalThis as any).DOMMatrix = class DOMMatrix {} as any;
+        }
+        if (!globalThis.Path2D) {
+          (globalThis as any).Path2D = class Path2D {} as any;
+        }
+      }
+
       // Dynamically import to prevent Next.js top-level Canvas/DOMMatrix crashes
-      const pdfModule = (await import('pdf-parse')) as any
-      const pdfParse = pdfModule.default || pdfModule
-      const data = await pdfParse(buffer)
-      return data.text
+      const { PDFParse } = await import('pdf-parse');
+      const pdf = new PDFParse({ data: buffer });
+      const data = await pdf.getText();
+      return data.text;
     } else if (
       mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
       mimetype === 'application/msword'
