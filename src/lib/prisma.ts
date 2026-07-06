@@ -21,11 +21,16 @@ const prismaClientSingleton = () => {
     }
   }
 
+  // Supabase (and most production Postgres instances) require SSL.
+  // Local development databases usually don't.
+  const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+
   const pool = new Pool({ 
     connectionString, 
     max: 3, 
     connectionTimeoutMillis: 10000,
-    idleTimeoutMillis: 30000
+    idleTimeoutMillis: 30000,
+    ssl: isLocalhost ? false : { rejectUnauthorized: false }
   })
   const adapter = new PrismaPg(pool)
 

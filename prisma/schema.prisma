@@ -7,35 +7,35 @@ datasource db {
 }
 
 model Organization {
-  id          String   @id @default(uuid())
-  name        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  users       User[]
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
 }
 
 model User {
-  id             String        @id // Maps to Supabase auth.users.id
-  email          String        @unique
-  name           String?
-  organizationId String?
-  organization   Organization? @relation(fields: [organizationId], references: [id])
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  settings       Json?
-  resumes        Resume[]
-  interviews     Interview[]
-  codingAttempts CodingAttempt[]
-  notifications   Notification[]
-  achievements    Achievement[]
-  jobDescriptions JobDescription[]
-  jobAnalyses     JobAnalysis[]
-  careerReadinessCache CareerReadinessCache?
+  id                       String                    @id
+  email                    String                    @unique
+  name                     String?
+  organizationId           String?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  settings                 Json?
+  achievements             Achievement[]
+  careerReadinessCache     CareerReadinessCache?
+  codingAttempts           CodingAttempt[]
+  interviews               Interview[]
+  jobAnalyses              JobAnalysis[]
+  jobDescriptions          JobDescription[]
+  notifications            Notification[]
   recruiterEvaluationCache RecruiterEvaluationCache?
+  resumes                  Resume[]
+  organization             Organization?             @relation(fields: [organizationId], references: [id])
 }
 
 model Resume {
-  id             String   @id @default(uuid())
+  id             String        @id @default(uuid())
   userId         String
   fileName       String
   fileType       String
@@ -44,65 +44,65 @@ model Resume {
   structuredData Json?
   gapAnalysis    Json?
   atsScore       Float?
-  createdAt      DateTime @default(now())
-
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime      @default(now())
   jobAnalyses    JobAnalysis[]
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
 model Interview {
-  id               String   @id @default(uuid())
+  id               String            @id @default(uuid())
   userId           String
   role             String
   difficulty       String
-  duration         Int      @default(30)
-  status           String   @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  duration         Int               @default(30)
+  status           String            @default("IN_PROGRESS")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   jobDescriptionId String?
-
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobDescription   JobDescription?   @relation(fields: [jobDescriptionId], references: [id])
-  questions        Question[]
-  interviewReports InterviewReport[]
   codingAttempts   CodingAttempt[]
+  jobDescription   JobDescription?   @relation(fields: [jobDescriptionId], references: [id])
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  interviewReports InterviewReport[]
+  questions        Question[]
+
   @@index([userId])
 }
 
 model Question {
-  id              String   @id @default(uuid())
-  interviewId     String
-  questionText    String
-  userAnswer      String?
-  aiFeedback      String?
-  score           Int?
-  createdAt       DateTime @default(now())
-  
-  interview       Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-  codingAttempts  CodingAttempt[]
+  id             String          @id @default(uuid())
+  interviewId    String
+  questionText   String
+  userAnswer     String?
+  aiFeedback     String?
+  score          Int?
+  createdAt      DateTime        @default(now())
+  codingAttempts CodingAttempt[]
+  interview      Interview       @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
   @@index([interviewId])
 }
 
 model InterviewReport {
-  id                   String   @id @default(uuid())
+  id                   String    @id @default(uuid())
   interviewId          String
   overallScore         Float
   hiringRecommendation String
   confidenceLevel      String
-  performanceMetrics   Json     // stores radar chart metrics
+  performanceMetrics   Json
   strengths            String[]
   weaknesses           String[]
-  learningRoadmap      Json     // topics to revise, leetcode recs
-  companyReadiness     Json     // percentage readiness for top tier companies
-  createdAt            DateTime @default(now())
-
+  learningRoadmap      Json
+  companyReadiness     Json
+  createdAt            DateTime  @default(now())
   interview            Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
   @@index([interviewId])
 }
 
 model CodingAttempt {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   userId          String
   interviewId     String
   questionId      String
@@ -118,11 +118,11 @@ model CodingAttempt {
   aiReview        Json?
   timeComplexity  String?
   spaceComplexity String?
-  createdAt       DateTime @default(now())
-
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
   interview       Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-  question        Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  question        Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([interviewId])
   @@index([questionId])
@@ -135,8 +135,8 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
@@ -145,30 +145,30 @@ model Achievement {
   userId     String
   badgeName  String
   unlockedAt DateTime @default(now())
-
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, badgeName])
   @@index([userId])
 }
 
 model JobDescription {
-  id          String   @id @default(uuid())
+  id          String        @id @default(uuid())
   userId      String
   title       String
   company     String?
   rawText     String
-  isActive    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isActive    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   interviews  Interview[]
   jobAnalyses JobAnalysis[]
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
 model JobAnalysis {
-  id                   String   @id @default(uuid())
+  id                   String         @id @default(uuid())
   userId               String
   resumeId             String
   jobDescriptionId     String
@@ -184,13 +184,12 @@ model JobAnalysis {
   resumeImprovements   Json
   aiCareerRoadmap      Json
   companyReadiness     Json
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  jobDescription       JobDescription @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
+  resume               Resume         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume           Resume         @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  jobDescription   JobDescription @relation(fields: [jobDescriptionId], references: [id], onDelete: Cascade)
-  
   @@unique([resumeId, jobDescriptionId])
   @@index([userId])
   @@index([resumeId])
@@ -198,22 +197,21 @@ model JobAnalysis {
 }
 
 model CareerReadinessCache {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  overallScore     Float
-  componentScores  Json
-  companyReadiness Json
-  skillRadar       Json
-  strengths        String[]
-  weaknesses       String[]
-  weeklyGoals      String[]
-  careerInsights   String
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  overallScore        Float
+  componentScores     Json
+  companyReadiness    Json
+  skillRadar          Json
+  strengths           String[]
+  weaknesses          String[]
+  weeklyGoals         String[]
+  careerInsights      String
   improvementTimeline Json
-  recruiterPreview Json
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recruiterPreview    Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model RecruiterEvaluationCache {
@@ -230,6 +228,5 @@ model RecruiterEvaluationCache {
   historicalData   Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
