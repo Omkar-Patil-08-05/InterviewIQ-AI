@@ -4,7 +4,14 @@ export class PistonExecutionService implements ICodeExecutionService {
   private readonly pistonUrl: string;
 
   constructor() {
-    this.pistonUrl = process.env.PISTON_URL || 'http://localhost:2000/api/v2/execute';
+    // If running on Vercel or no URL provided, use the public Piston API by default
+    const defaultUrl = 'https://emkc.org/api/v2/piston/execute';
+    
+    if (process.env.PISTON_URL && !process.env.PISTON_URL.includes('localhost')) {
+      this.pistonUrl = process.env.PISTON_URL;
+    } else {
+      this.pistonUrl = defaultUrl;
+    }
   }
 
   private getLanguageConfig(language: string) {

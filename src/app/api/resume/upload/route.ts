@@ -26,8 +26,25 @@ export async function POST(req: Request) {
     // Parse the physical file into raw text
     const parsedText = await ResumeParserService.parseFile(buffer, file.type)
     
-    // Analyze the raw text using Gemini to get structured output
-    const analysis = await AIResumeService.analyzeResume(parsedText)
+    let analysis;
+    try {
+      // Analyze the raw text using Gemini to get structured output
+      analysis = await AIResumeService.analyzeResume(parsedText);
+    } catch (aiError: any) {
+      logger.error("AI Analysis Error:", aiError);
+      
+      const errorMessage = aiError.message?.toLowerCase() || "";
+      if (errorMessage.includes("quota") || errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+        return NextResponse.json(
+          { error: "Our AI analysis service is currently overloaded or out of quota. Please try again later or upgrade your plan." },
+          { status: 429 }
+        );
+      }
+      return NextResponse.json(
+        { error: "Failed to analyze resume with AI. Please ensure the document is readable and try again." },
+        { status: 500 }
+      );
+    }
     
     // Ensure user exists in Prisma before creating the resume
     const userEmail = user.email || user.user_metadata?.email || 'unknown@example.com';
