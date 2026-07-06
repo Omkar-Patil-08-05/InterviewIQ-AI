@@ -34,10 +34,14 @@ export class RecruiterEvaluationService {
       latestJobAnalysis?.updatedAt.getTime() || 0
     );
 
+    if (latestActivityDate === 0) {
+      return null;
+    }
+
     const cache = await prisma.recruiterEvaluationCache.findUnique({ where: { userId } });
 
     // If cache is fresh, return it
-    if (cache && cache.updatedAt.getTime() >= latestActivityDate && latestActivityDate > 0) {
+    if (cache && cache.updatedAt.getTime() >= latestActivityDate) {
       return cache;
     }
 

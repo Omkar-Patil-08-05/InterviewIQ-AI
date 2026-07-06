@@ -7,9 +7,9 @@ import { User, Mail, Briefcase, GraduationCap, Building, Target, TrendingUp } fr
 export default function CandidateOverview({ data }: { data: any }) {
   const { user, careerReadiness, evaluation, resumes, jobAnalyses } = data
 
-  const resume = resumes[0]
-  const targetCompanies = [...new Set(jobAnalyses.map((j: any) => j.jobDescription.company))].filter(Boolean)
-  const targetRoles = [...new Set(jobAnalyses.map((j: any) => j.jobDescription.title))].filter(Boolean)
+  const resume = resumes?.length > 0 ? resumes[0] : null
+  const targetCompanies = jobAnalyses ? [...new Set(jobAnalyses.map((j: any) => j.jobDescription?.company))].filter(Boolean) : []
+  const targetRoles = jobAnalyses ? [...new Set(jobAnalyses.map((j: any) => j.jobDescription?.title))].filter(Boolean) : []
 
   const overallScore = careerReadiness?.overallScore || 0
 
@@ -47,7 +47,7 @@ export default function CandidateOverview({ data }: { data: any }) {
               </div>
               <div className="space-y-1">
                 <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold flex items-center gap-1"><TrendingUp className="w-3 h-3"/> Platform Activity</div>
-                <div className="text-sm font-medium">{data.coding.length} Submissions, {data.interviews.length} Interviews</div>
+                <div className="text-sm font-medium">{data.coding?.length || 0} Submissions, {data.interviews?.length || 0} Interviews</div>
               </div>
             </div>
           </div>

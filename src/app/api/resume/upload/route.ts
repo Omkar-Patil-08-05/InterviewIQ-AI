@@ -30,13 +30,19 @@ export async function POST(req: Request) {
     const analysis = await AIResumeService.analyzeResume(parsedText)
     
     // Ensure user exists in Prisma before creating the resume
+    const userEmail = user.email || user.user_metadata?.email || 'unknown@example.com';
+    const userName = user.user_metadata?.full_name || 'Candidate';
+    
     await prisma.user.upsert({
       where: { id: user.id },
-      update: {},
+      update: {
+        email: userEmail,
+        name: userName
+      },
       create: {
         id: user.id,
-        email: user.email || '',
-        name: user.user_metadata?.full_name || 'Candidate',
+        email: userEmail,
+        name: userName,
       }
     })
 

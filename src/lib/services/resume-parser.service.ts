@@ -7,9 +7,9 @@ export class ResumeParserService {
   static async parseFile(buffer: Buffer, mimetype: string): Promise<string> {
     if (mimetype === 'application/pdf') {
       // Dynamically import to prevent Next.js top-level Canvas/DOMMatrix crashes
-      const { PDFParse } = require('pdf-parse')
-      const pdf = new PDFParse({ data: buffer })
-      const data = await pdf.getText()
+      const pdfModule = (await import('pdf-parse')) as any
+      const pdfParse = pdfModule.default || pdfModule
+      const data = await pdfParse(buffer)
       return data.text
     } else if (
       mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
