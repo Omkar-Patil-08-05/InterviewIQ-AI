@@ -104,46 +104,52 @@ export class RecruiterEvaluationService {
     `;
 
     // 4. Generate AI Recruiter Insights
-    const { object } = await generateObject({
-      model: google('gemini-flash-latest'),
-      schema: RecruiterEvaluationSchema,
-      prompt: `You are an elite Senior Technical Recruiter at a FAANG company. Evaluate this candidate based strictly on the provided data. 
-      Generate a brutally honest, professional executive summary, hiring decision, risks, strengths, and targeted interview questions that a hiring manager would want to ask them to probe their weaknesses and verify their resume claims.
-      
-      DATA:
-      ${aiContext}
-      `
-    });
+    try {
+      const { object } = await generateObject({
+        model: google('gemini-flash-latest'),
+        schema: RecruiterEvaluationSchema,
+        prompt: `You are an elite Senior Technical Recruiter at a FAANG company. Evaluate this candidate based strictly on the provided data. 
+        Generate a brutally honest, professional executive summary, hiring decision, risks, strengths, and targeted interview questions that a hiring manager would want to ask them to probe their weaknesses and verify their resume claims.
+        
+        DATA:
+        ${aiContext}
+        `
+      });
 
-    // 5. Upsert Cache
-    const newCache = await prisma.recruiterEvaluationCache.upsert({
-      where: { userId },
-      update: {
-        overallRating: object.overallRating,
-        confidenceLevel: object.confidenceLevel,
-        recommendation: object.recommendation,
-        reasoning: object.reasoning,
-        executiveSummary: object.executiveSummary,
-        strengths: object.strengths,
-        risks: object.risks,
-        customQuestions: object.customQuestions,
-        historicalData: historicalData || undefined,
-        updatedAt: new Date()
-      },
-      create: {
-        userId,
-        overallRating: object.overallRating,
-        confidenceLevel: object.confidenceLevel,
-        recommendation: object.recommendation,
-        reasoning: object.reasoning,
-        executiveSummary: object.executiveSummary,
-        strengths: object.strengths,
-        risks: object.risks,
-        customQuestions: object.customQuestions,
-        historicalData: historicalData || undefined
-      }
-    });
+      // 5. Upsert Cache
+      const newCache = await prisma.recruiterEvaluationCache.upsert({
+        where: { userId },
+        update: {
+          overallRating: object.overallRating,
+          confidenceLevel: object.confidenceLevel,
+          recommendation: object.recommendation,
+          reasoning: object.reasoning,
+          executiveSummary: object.executiveSummary,
+          strengths: object.strengths,
+          risks: object.risks,
+          customQuestions: object.customQuestions,
+          historicalData: historicalData || undefined,
+          updatedAt: new Date()
+        },
+        create: {
+          userId,
+          overallRating: object.overallRating,
+          confidenceLevel: object.confidenceLevel,
+          recommendation: object.recommendation,
+          reasoning: object.reasoning,
+          executiveSummary: object.executiveSummary,
+          strengths: object.strengths,
+          risks: object.risks,
+          customQuestions: object.customQuestions,
+          historicalData: historicalData || undefined
+        }
+      });
 
-    return newCache;
+      return newCache;
+    } catch (error) {
+      console.error("AI Generation Error in RecruiterEvaluationService:", error);
+      // Fallback: Return null to prevent UI from crashing
+      return null;
+    }
   }
 }

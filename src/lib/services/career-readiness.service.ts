@@ -143,47 +143,53 @@ export class CareerReadinessService {
       ${jobAnalyses.map(ja => ja.jobDescription.company || 'Unknown').join(', ')}
     `;
 
-    const { object } = await generateObject({
-      model: google('gemini-flash-latest'),
-      schema: CareerReadinessInsightsSchema,
-      prompt: `You are an elite Tech Recruiter and Career Coach. Analyze the candidate's performance data below and generate a comprehensive Career Readiness Report. Be critical but encouraging. Make the weekly goals highly actionable (e.g. 'Solve 10 Dynamic Programming Leetcode mediums' rather than 'Practice coding'). Ensure companyReadiness array is robust and recruiter preview is deeply analytical.
-      
-      DATA:
-      ${aiContext}
-      `
-    });
+    try {
+      const { object } = await generateObject({
+        model: google('gemini-flash-latest'),
+        schema: CareerReadinessInsightsSchema,
+        prompt: `You are an elite Tech Recruiter and Career Coach. Analyze the candidate's performance data below and generate a comprehensive Career Readiness Report. Be critical but encouraging. Make the weekly goals highly actionable (e.g. 'Solve 10 Dynamic Programming Leetcode mediums' rather than 'Practice coding'). Ensure companyReadiness array is robust and recruiter preview is deeply analytical.
+        
+        DATA:
+        ${aiContext}
+        `
+      });
 
-    // 5. Upsert Cache
-    const newCache = await prisma.careerReadinessCache.upsert({
-      where: { userId },
-      update: {
-        overallScore,
-        componentScores,
-        companyReadiness: object.companyReadiness,
-        skillRadar: object.skillRadar,
-        strengths: object.strengths,
-        weaknesses: object.weaknesses,
-        weeklyGoals: object.weeklyGoals,
-        careerInsights: object.careerInsights,
-        improvementTimeline: object.improvementTimeline,
-        recruiterPreview: object.recruiterPreview,
-        updatedAt: new Date()
-      },
-      create: {
-        userId,
-        overallScore,
-        componentScores,
-        companyReadiness: object.companyReadiness,
-        skillRadar: object.skillRadar,
-        strengths: object.strengths,
-        weaknesses: object.weaknesses,
-        weeklyGoals: object.weeklyGoals,
-        careerInsights: object.careerInsights,
-        improvementTimeline: object.improvementTimeline,
-        recruiterPreview: object.recruiterPreview,
-      }
-    });
+      // 5. Upsert Cache
+      const newCache = await prisma.careerReadinessCache.upsert({
+        where: { userId },
+        update: {
+          overallScore,
+          componentScores,
+          companyReadiness: object.companyReadiness,
+          skillRadar: object.skillRadar,
+          strengths: object.strengths,
+          weaknesses: object.weaknesses,
+          weeklyGoals: object.weeklyGoals,
+          careerInsights: object.careerInsights,
+          improvementTimeline: object.improvementTimeline,
+          recruiterPreview: object.recruiterPreview,
+          updatedAt: new Date()
+        },
+        create: {
+          userId,
+          overallScore,
+          componentScores,
+          companyReadiness: object.companyReadiness,
+          skillRadar: object.skillRadar,
+          strengths: object.strengths,
+          weaknesses: object.weaknesses,
+          weeklyGoals: object.weeklyGoals,
+          careerInsights: object.careerInsights,
+          improvementTimeline: object.improvementTimeline,
+          recruiterPreview: object.recruiterPreview,
+        }
+      });
 
-    return newCache;
+      return newCache;
+    } catch (error) {
+      console.error("AI Generation Error in CareerReadinessService:", error);
+      // Fallback: Return null so the UI can gracefully show an empty state instead of crashing
+      return null;
+    }
   }
 }
